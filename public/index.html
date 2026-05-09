@@ -1,0 +1,398 @@
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Social App</title>
+
+<style>
+
+body{
+background:#0f172a;
+color:white;
+font-family:Arial;
+margin:0;
+text-align:center;
+}
+
+.header{
+background:#1e293b;
+padding:15px;
+font-size:22px;
+font-weight:bold;
+}
+
+.box{
+background:#1e293b;
+margin:10px;
+padding:10px;
+border-radius:10px;
+}
+
+input,button,textarea{
+width:90%;
+padding:10px;
+margin:5px;
+border:none;
+border-radius:8px;
+}
+
+button{
+background:#38bdf8;
+font-weight:bold;
+cursor:pointer;
+}
+
+img,video{
+width:100%;
+border-radius:10px;
+margin-top:10px;
+}
+
+.post{
+background:#1e293b;
+margin:10px;
+padding:10px;
+border-radius:10px;
+}
+
+.comment{
+background:#334155;
+padding:5px;
+border-radius:5px;
+margin-top:5px;
+}
+
+.likeBtn{
+background:#ef4444;
+color:white;
+}
+
+.commentBtn{
+background:#22c55e;
+color:white;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+🔥 Social App
+</div>
+
+<!-- LOGIN BOX -->
+
+<div id="auth" class="box">
+
+<input
+id="username"
+placeholder="Username">
+
+<input
+id="password"
+type="password"
+placeholder="Password">
+
+<button onclick="signup()">
+Signup
+</button>
+
+<button onclick="login()">
+Login
+</button>
+
+</div>
+
+<!-- APP -->
+
+<div id="app" style="display:none;">
+
+<h2 id="welcome"></h2>
+
+<div class="box">
+
+<input type="file" id="file">
+
+<textarea
+id="caption"
+placeholder="Write caption"></textarea>
+
+<button onclick="addPost()">
+Post
+</button>
+
+</div>
+
+<div id="feed"></div>
+
+</div>
+
+<script>
+
+const API = "http://localhost:3000";
+
+let currentUser = null;
+
+// SIGNUP
+
+async function signup(){
+
+let res = await fetch(API + "/signup",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+username:username.value,
+password:password.value
+
+})
+
+});
+
+let data = await res.json();
+
+alert(data.msg);
+
+}
+
+// LOGIN
+
+async function login(){
+
+let res = await fetch(API + "/login",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+username:username.value,
+password:password.value
+
+})
+
+});
+
+let data = await res.json();
+
+if(!data.success){
+
+return alert(data.msg);
+
+}
+
+currentUser = username.value;
+
+auth.style.display = "none";
+
+app.style.display = "block";
+
+welcome.innerText =
+"Welcome " + currentUser;
+
+loadFeed();
+
+}
+
+// ADD POST
+
+async function addPost(){
+
+const file =
+document.getElementById("file").files[0];
+
+const caption =
+document.getElementById("caption").value;
+
+if(!file){
+
+return alert("Choose file first");
+
+}
+
+let formData = new FormData();
+
+formData.append("file", file);
+
+formData.append("username", currentUser);
+
+formData.append("caption", caption);
+
+await fetch(API + "/upload",{
+
+method:"POST",
+
+body:formData
+
+});
+
+document.getElementById("caption").value = "";
+
+document.getElementById("file").value = "";
+
+loadFeed();
+
+}
+
+// LIKE POST
+
+async function likePost(owner,index){
+
+await fetch(API + "/like",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+owner,
+index
+})
+
+});
+
+loadFeed();
+
+}
+
+// ADD COMMENT
+
+async function addComment(owner,index,inputId){
+
+const text =
+document.getElementById(inputId).value;
+
+if(!text){
+
+return alert("Write comment");
+
+}
+
+await fetch(API + "/comment",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+owner,
+index,
+text
+})
+
+});
+
+loadFeed();
+
+}
+
+// LOAD FEED
+
+async function loadFeed(){
+
+let res =
+await fetch(API + "/feed");
+
+let users =
+await res.json();
+
+feed.innerHTML = "";
+
+Object.keys(users).forEach(user=>{
+
+users[user].posts.forEach((post,index)=>{
+
+let commentsHTML = "";
+
+post.comments.forEach(comment=>{
+
+commentsHTML += `
+
+<div class="comment">
+💬 ${comment}
+</div>
+
+`;
+
+});
+
+let div =
+document.createElement("div");
+
+div.className = "post";
+
+div.innerHTML = `
+
+<h3>${user}</h3>
+
+${
+post.type === "video"
+?
+`<video controls src="${API}${post.file}"></video>`
+:
+`<img src="${API}${post.file}">`
+}
+
+<p>${post.caption}</p>
+
+<button
+class="likeBtn"
+onclick="likePost('${user}', ${index})">
+
+❤️ ${post.likes}
+
+</button>
+
+<div>
+
+<input
+id="c${user}${index}"
+placeholder="Comment">
+
+<button
+class="commentBtn"
+onclick="addComment('${user}', ${index}, 'c${user}${index}')">
+
+Post Comment
+
+</button>
+
+</div>
+
+${commentsHTML}
+
+`;
+
+feed.prepend(div);
+
+});
+
+});
+
+}
+
+// LOAD POSTS ON START
+
+loadFeed();
+
+</script>
+
+</body>
+</html>
