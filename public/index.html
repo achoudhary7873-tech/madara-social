@@ -1,11 +1,9 @@
-
-
 <!DOCTYPE html>
 <html>
 
 <head>
 
-<title>Social App</title>
+<title>Madara Social</title>
 
 <style>
 
@@ -20,7 +18,7 @@ text-align:center;
 .header{
 background:#1e293b;
 padding:15px;
-font-size:22px;
+font-size:24px;
 font-weight:bold;
 }
 
@@ -82,10 +80,8 @@ color:white;
 <body>
 
 <div class="header">
-🔥 Social App
+🔥 Madara Social
 </div>
-
-<!-- LOGIN BOX -->
 
 <div id="auth" class="box">
 
@@ -107,8 +103,6 @@ Login
 </button>
 
 </div>
-
-<!-- APP -->
 
 <div id="app" style="display:none;">
 
@@ -134,7 +128,8 @@ Post
 
 <script>
 
-const API = "http://localhost:3000";
+/* IMPORTANT FIX */
+const API = "";
 
 let currentUser = null;
 
@@ -247,7 +242,7 @@ loadFeed();
 
 }
 
-// LIKE POST
+// LIKE
 
 async function likePost(owner,index){
 
@@ -270,7 +265,7 @@ loadFeed();
 
 }
 
-// ADD COMMENT
+// COMMENT
 
 async function addComment(owner,index,inputId){
 
@@ -345,9 +340,9 @@ div.innerHTML = `
 ${
 post.type === "video"
 ?
-`<video controls src="${API}${post.file}"></video>`
+`<video controls src="${post.file}"></video>`
 :
-`<img src="${API}${post.file}">`
+`<img src="${post.file}">`
 }
 
 <p>${post.caption}</p>
@@ -387,8 +382,6 @@ feed.prepend(div);
 });
 
 }
-
-// LOAD POSTS ON START
 
 loadFeed();
 
